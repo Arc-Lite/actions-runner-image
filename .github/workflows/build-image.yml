@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build:
@@ -41,50 +42,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build image
+      - name: Prepare image tag
+        id: image
+        shell: bash
+        run: echo "tag=ghcr.io/${GITHUB_REPOSITORY,,}:$RUNNER_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
           platforms: linux/amd64
-          load: true
-          tags: actions-runner-image:${{ env.RUNNER_VERSION }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.image.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
           build-args: |
             RUNNER_VERSION=${{ env.RUNNER_VERSION }}
             IMAGE_VERSION=${{ github.run_id }}.${{ github.run_attempt }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Verify image
-        shell: bash
-        run: |
-          image="actions-runner-image:$RUNNER_VERSION"
-          test "$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$image")" = linux/amd64
-          test "$(docker run --rm --entrypoint /home/runner/bin/Runner.Listener "$image" --version)" = "$RUNNER_VERSION"
-          docker run --rm --entrypoint bash "$image" -e -c '
-            set -a
-            source /etc/environment
-            set +a
-            test "$(id -u)" = 1001
-            test -d /home/runner/k8s
-            test -d /home/runner/k8s-novolume
-            test "$ImageOS" = ubuntu24
-            node --version
-            python3 --version
-            pwsh --version
-            docker --version
-            docker compose version
-            docker buildx version
-          '
-
-      - name: Export image
-        shell: bash
-        run: docker save "actions-runner-image:$RUNNER_VERSION" | gzip -1 > "$RUNNER_TEMP/actions-runner-image.tar.gz"
-
-      - name: Upload image
-        uses: actions/upload-artifact@v4
-        with:
-          name: actions-runner-image-${{ env.RUNNER_VERSION }}-linux-amd64
-          path: ${{ runner.temp }}/actions-runner-image.tar.gz
-          compression-level: 0
-          retention-days: 7

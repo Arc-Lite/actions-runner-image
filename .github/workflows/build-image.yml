@@ -77,14 +77,14 @@ jobs:
             docker buildx version
           '
 
-      # - name: Export image
-      #   shell: bash
-      #   run: docker save "actions-runner-image:$RUNNER_VERSION" | gzip -1 > "$RUNNER_TEMP/actions-runner-image.tar.gz"
+      - name: Export image
+        shell: bash
+        run: docker save "actions-runner-image:$RUNNER_VERSION" | gzip -1 > "$RUNNER_TEMP/actions-runner-image.tar.gz"
 
-      # - name: Upload image
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: actions-runner-image-${{ env.RUNNER_VERSION }}-linux-amd64
-      #     path: ${{ runner.temp }}/actions-runner-image.tar.gz
-      #     compression-level: 0
-      #     retention-days: 7
+      - name: Upload image
+        uses: actions/upload-artifact@v4
+        with:
+          name: actions-runner-image-${{ env.RUNNER_VERSION }}-linux-amd64
+          path: ${{ runner.temp }}/actions-runner-image.tar.gz
+          compression-level: 0
+          retention-days: 7

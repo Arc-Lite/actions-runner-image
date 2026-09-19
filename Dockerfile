@@ -73,7 +73,7 @@ RUN find /tmp/scripts -name "*.sh" -type f -exec chmod +x {} \;
 
 RUN echo 'set -eo pipefail' >> /etc/bash.bashrc
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y sudo lsb-release jq dpkg && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y sudo lsb-release jq dpkg software-properties-common && \
     touch /run/.containerenv && \
     /tmp/scripts/build/configure-apt-sources.sh && \
     /tmp/scripts/build/configure-apt.sh && \

@@ -84,6 +84,10 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y sudo lsb-release 
     /tmp/scripts/build/install-apt-common.sh && \
     /tmp/scripts/build/install-git.sh && \
     /tmp/scripts/build/install-git-lfs.sh && \
+    /tmp/scripts/build/configure-dpkg.sh && \
+    /tmp/scripts/helpers/cleanup.sh
+
+RUN apt-get update && \
     /tmp/scripts/build/install-github-cli.sh && \
     /tmp/scripts/build/install-java-tools.sh && \
     /tmp/scripts/build/install-dotnetcore-sdk.sh && \
@@ -99,7 +103,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y sudo lsb-release 
     /tmp/scripts/build/install-nvm.sh && \
     /tmp/scripts/build/install-nodejs.sh && \
     /tmp/scripts/build/install-vcpkg.sh && \
-    /tmp/scripts/build/configure-dpkg.sh && \
     /tmp/scripts/build/install-yq.sh && \
     /tmp/scripts/build/install-python.sh && \
     /tmp/scripts/build/install-zstd.sh && \

@@ -10,3 +10,5 @@ find /var/log/ -type f -exec cp /dev/null {} \;
 rm -rf /tmp/downloads /tmp/installers
 
 apt-get clean
+apt-get autoremove -y
+rm -rf /var/lib/apt/lists/*

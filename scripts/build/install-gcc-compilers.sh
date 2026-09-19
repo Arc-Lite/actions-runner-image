@@ -1,15 +1,15 @@
 #!/bin/bash -e
 ################################################################################
-##  File:  install-powershell.sh
-##  Desc:  Install PowerShell Core
+##  File:  install-gcc-compilers.sh
+##  Desc:  Install GNU C++ compilers
 ################################################################################
 
 # Source the helpers for use with the script
 source $HELPER_SCRIPTS/install.sh
-source $HELPER_SCRIPTS/os.sh
 
-pwsh_version=$(get_toolset_value .pwsh.version)
+versions=$(get_toolset_value '.gcc.versions[]')
 
-# Install Powershell
-
-    apt-get install powershell=$pwsh_version*
+for version in ${versions[*]}; do
+    echo "Installing $version..."
+    apt-get install $version
+done

@@ -1,5 +1,27 @@
 {
     "toolcache": [
+        {
+            "name": "Python",
+            "url": "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+            "platform": "linux",
+            "platform_version": "24.04",
+            "arch": "x64",
+            "versions": ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
+        },
+        {
+            "name": "go",
+            "url": "https://raw.githubusercontent.com/actions/go-versions/main/versions-manifest.json",
+            "platform": "linux",
+            "arch": "x64",
+            "versions": ["1.24.*", "1.25.*", "1.26.*"],
+            "default": "1.24.*"
+        },
+        {
+            "name": "Ruby",
+            "platform_version": "24.04",
+            "arch": "x64",
+            "versions": ["3.2.*", "3.3.*", "3.4.*", "4.0.*"]
+        },
          {
             "name": "node",
             "url" : "https://raw.githubusercontent.com/actions/node-versions/main/versions-manifest.json",
@@ -19,6 +41,39 @@
             ]
         }
     ],
+    "java": {
+        "default": "17",
+        "versions": ["8", "11", "17", "21", "25"],
+        "maven": "3"
+    },
+    "dotnet": {
+        "versions": ["8.0", "9.0", "10.0"],
+        "tools": [
+            {"name": "nbgv", "test": "nbgv --version", "getversion": "nbgv --version"}
+        ]
+    },
+    "clang": {
+        "versions": ["16", "17", "18"],
+        "default_version": "18"
+    },
+    "gcc": {
+        "versions": ["g++-12", "g++-13", "g++-14"]
+    },
+    "gfortran": {
+        "versions": ["gfortran-12", "gfortran-13", "gfortran-14"]
+    },
+    "rubygems": [
+        {"name": "multi_json"},
+        {"name": "fastlane"}
+    ],
+    "cmake": {
+        "version": "3.31.6",
+        "pinnedDetails": {
+            "reason": "Pinned to avoid CMake 4.0 compatibility issues",
+            "link": "https://github.com/actions/runner-images/issues/11926",
+            "review-at": "2026-12-01"
+        }
+    },
     "apt": {
         "vital_packages": [
             "apt-utils",
@@ -44,6 +99,7 @@
             "fakeroot",
             "fonts-noto-color-emoji",
             "gnupg2",
+            "gettext-base",
             "iproute2",
             "iputils-ping",
             "libyaml-dev",
@@ -102,8 +158,14 @@
     "node": {
         "default": "24"
     },
-    "node_modules": [ ],
-    "pwsh": {
-        "version": "7.6"
-    }
+    "node_modules": [
+        {
+            "name": "n",
+            "command": "n"
+        },
+        {
+            "name": "yarn",
+            "command": "yarn"
+        }
+    ]
 }

@@ -22,6 +22,27 @@ RUN curl -f -L -o runner-container-hooks.zip https://github.com/actions/runner-c
     && unzip ./runner-container-hooks.zip -d ./k8s-novolume \
     && rm runner-container-hooks.zip
 
+RUN sed -i '1a set -a\nsource /etc/environment\nset +a' /actions-runner/run.sh
+
+FROM ubuntu:24.04 AS toolcache
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache
+ENV RUNNER_TOOL_CACHE=/opt/hostedtoolcache
+ENV HELPER_SCRIPTS=/tmp/scripts/helpers
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl jq tar gzip xz-utils libpython3.12 libssl3t64 libffi8 libbz2-1.0 liblzma5 libsqlite3-0 libreadline8t64 libncursesw6 libgdbm6t64 libuuid1 tk \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --link toolsets/toolset.json /tmp/toolsets/toolset.json
+COPY --link scripts/build/install-hostedtoolcache.sh /tmp/install-hostedtoolcache.sh
+RUN bash /tmp/install-hostedtoolcache.sh /tmp/toolsets/toolset.json
+
+COPY --link scripts/helpers/install.sh /tmp/scripts/helpers/install.sh
+COPY --link scripts/build/install-codeql-bundle.sh /tmp/install-codeql-bundle.sh
+RUN bash -e /tmp/install-codeql-bundle.sh
+
 FROM ubuntu:24.04 AS base
 
 ARG IMAGE_VERSION=1.0.0
@@ -40,8 +61,9 @@ ENV IMAGEDATA_NAME="ubuntu:24.04"
 ENV NVM_DIR="/etc/skel/.nvm"
 ENV HELPER_SCRIPTS="/tmp/scripts/helpers"
 ENV INSTALLER_SCRIPT_FOLDER="/tmp/toolsets"
+ENV AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache
+ENV RUNNER_TOOL_CACHE=/opt/hostedtoolcache
 
-# Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY scripts/build /tmp/scripts/build
@@ -56,23 +78,27 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y sudo lsb-release 
     /tmp/scripts/build/configure-apt-sources.sh && \
     /tmp/scripts/build/configure-apt.sh && \
     /tmp/scripts/build/install-apt-vital.sh && \
-    /tmp/scripts/build/install-ms-repos.sh && \
     /tmp/scripts/build/configure-image-data-file.sh && \
     /tmp/scripts/build/configure-environment.sh && \
     /tmp/scripts/build/install-actions-cache.sh && \
     /tmp/scripts/build/install-apt-common.sh && \
-    /tmp/scripts/build/install-azcopy.sh && \
-    /tmp/scripts/build/install-azure-cli.sh && \
-    /tmp/scripts/build/install-azure-devops-cli.sh && \
-    /tmp/scripts/build/install-bicep.sh && \
-    /tmp/scripts/build/install-aws-tools.sh && \
     /tmp/scripts/build/install-git.sh && \
     /tmp/scripts/build/install-git-lfs.sh && \
     /tmp/scripts/build/install-github-cli.sh && \
-    /tmp/scripts/build/install-google-cloud-cli.sh && \
+    /tmp/scripts/build/install-java-tools.sh && \
+    /tmp/scripts/build/install-dotnetcore-sdk.sh && \
+    /tmp/scripts/build/install-clang.sh && \
+    /tmp/scripts/build/install-gcc-compilers.sh && \
+    /tmp/scripts/build/install-gfortran.sh && \
+    /tmp/scripts/build/install-cmake.sh && \
+    /tmp/scripts/build/install-ninja.sh && \
+    /tmp/scripts/build/install-rust.sh && \
+    /tmp/scripts/build/install-ruby.sh && \
+    /tmp/scripts/build/install-terraform.sh && \
+    /tmp/scripts/build/install-oras-cli.sh && \
     /tmp/scripts/build/install-nvm.sh && \
     /tmp/scripts/build/install-nodejs.sh && \
-    /tmp/scripts/build/install-powershell.sh && \
+    /tmp/scripts/build/install-vcpkg.sh && \
     /tmp/scripts/build/configure-dpkg.sh && \
     /tmp/scripts/build/install-yq.sh && \
     /tmp/scripts/build/install-python.sh && \
@@ -95,13 +121,8 @@ RUN adduser --disabled-password --gecos "" --uid 1001 runner \
 WORKDIR /home/runner
 
 COPY --link --chown=1001:123 --from=build /actions-runner .
+COPY --link --chown=1001:123 --from=toolcache /opt/hostedtoolcache/ /opt/hostedtoolcache/
 
-# Install the runtime libraries previously supplied by the .NET base image.
 RUN ./bin/installdependencies.sh
 
-# Load slim's environment even when ARC invokes run.sh directly.
-RUN sed -i '1a set -a\nsource /etc/environment\nset +a' /home/runner/run.sh
-
 USER runner
-
-ENTRYPOINT ["/home/runner/run.sh"]

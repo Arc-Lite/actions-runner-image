@@ -10,10 +10,10 @@ source $HELPER_SCRIPTS/etc-environment.sh
 source $HELPER_SCRIPTS/os.sh
 
 # Install Python, Python 3, pip, pip3
-apt-get install -y --no-install-recommends python3 python3-dev python3-pip python3-venv
+apt-get install --no-install-recommends python3 python3-dev python3-pip python3-venv
 
-if is_ubuntu24; then
-# Create temporary workaround to allow user to continue using pip
+if ! is_ubuntu22; then
+# allow user to continue using pip
     sudo cat <<EOF > /etc/pip.conf
 [global]
 break-system-packages = true
@@ -25,13 +25,25 @@ fi
 export PIPX_BIN_DIR=/opt/pipx_bin
 export PIPX_HOME=/opt/pipx
 
-python3 -m pip install pipx
+if is_ubuntu24; then
+    # Noble ships Debian-managed packaging 24.0, which pip cannot replace for pipx 1.17.1.
+    # Keep this pin for the Ubuntu 24.04 lifetime unless the distro package is upgraded.
+    python3 -m pip install "pipx==1.16.7"
+else
+    python3 -m pip install pipx
+fi
 python3 -m pipx ensurepath
 
 # Update /etc/environment
 set_etc_environment_variable "PIPX_BIN_DIR" $PIPX_BIN_DIR
 set_etc_environment_variable "PIPX_HOME" $PIPX_HOME
 prepend_etc_environment_path $PIPX_BIN_DIR
+
+# Test pipx
+if ! command -v pipx; then
+    echo "pipx was not installed or not found on PATH"
+    exit 1
+fi
 
 # Adding this dir to PATH will make installed pip commands are immediately available.
 prepend_etc_environment_path '$HOME/.local/bin'

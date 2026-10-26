@@ -1,0 +1,3 @@
+[submodule "upstream/runner-images"]
+	path = upstream/runner-images
+	url = https://github.com/actions/runner-images.git

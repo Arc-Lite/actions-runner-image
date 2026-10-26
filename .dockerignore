@@ -1,0 +1,11 @@
+.git
+upstream/runner-images/.git
+upstream/runner-images/**
+!upstream/runner-images/images/
+!upstream/runner-images/images/ubuntu/
+!upstream/runner-images/images/ubuntu/scripts/
+!upstream/runner-images/images/ubuntu/scripts/**
+!upstream/runner-images/images/ubuntu-slim/
+!upstream/runner-images/images/ubuntu-slim/scripts/
+!upstream/runner-images/images/ubuntu-slim/scripts/**
+**/__pycache__
